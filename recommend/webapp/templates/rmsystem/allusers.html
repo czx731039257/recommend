@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>所有用户</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/layui.css' %}">
+
+</head>
+<body>
+{% load static %}
+<script src="{% static 'layui.js' %}" charset="utf-8"></script>
+{% csrf_token %}
+
+
+<script type="text/html" id="toolbarDemo">
+ <div class="layui-inline" lay-event="refresh"><i class="layui-icon layui-icon-refresh-3"></i></div>
+    ID：
+  <div class="layui-inline">
+    <input class="layui-input" name="id" id="selectid" autocomplete="off">
+  </div>
+  用户名：
+    <div class="layui-inline">
+    <input class="layui-input" name="id" id="selectusername" autocomplete="off">
+  </div>
+
+ {% if '/allusers' in request.session.permissions %}
+  <button class="layui-btn" id="select" lay-event="select">搜索</button>
+    <button class="layui-btn" id="selectall" lay-event="selectall">搜索全部</button>
+    {% endif %}
+</script>
+
+<table class="layui-hide" id="test" lay-filter="test"></table>
+
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-xs" lay-event="parameter">查看参数</a>
+    {% if '/edituser' in request.session.permissions %}
+  <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    {% endif %}
+    {% if '/del_user' in request.session.permissions %}
+    <a class="layui-btn layui-btn-xs" lay-event="del">删除</a>
+    {% endif %}
+</script>
+
+<script>
+  layui.use(['table','layer','jquery'], function(){
+  var table = layui.table;
+  var layer = layui.layer;
+  var $=layui.$
+
+  table.render({
+    elem: '#test'
+    ,url:'/get_allusers'
+    ,id: 'test'
+    ,toolbar: '#toolbarDemo'
+    ,cols: [[
+      {field:'id', width:70, title: 'ID', sort: true}
+      ,{field:'username', width:150, title: '用户名'}
+      ,{field:'password', width:150, title: '密码'}
+      ,{field:'sex', width:60, title: '性别',templet: function(d){if(d.sex == 0){return '男'}else{return '女'}}}
+      ,{field:'phone', width:150, title: '手机号'}
+      ,{field:'email', width:200, title: '邮箱'}
+      ,{field:'rolename', width:130, title: '角色'}
+      ,{field:'remarks', width:170, title: '备注'}
+      ,{fixed: 'right', title:'操作', toolbar: '#barDemo', width:200}
+    ]]
+    ,page: true
+  });
+
+  table.on('toolbar(test)',function(obj){
+    var event=obj.event;
+    if (event=="select"){
+        selectid=$('#selectid').val();
+    selectusername=$('#selectusername').val();
+        table.reload('test',{
+           page:{
+              curr:1
+           },
+           where:{
+                id:selectid,
+                username:selectusername
+           }
+        });
+    }else if(event=="selectall"){
+        table.reload('test',{
+            page:{
+                curr:1
+            },
+            where:{
+                id:'',
+                username:''
+            }
+        });
+    }else if(event=="refresh"){
+        table.reload('test',{
+            page:{
+                curr:1
+            }
+         });
+    }
+
+  });
+
+
+   $.ajaxSetup({
+            data:{csrfmiddlewaretoken:'{{ csrf_token }}'}
+        });
+
+   //监听行工具事件
+  table.on('tool(test)', function(obj){
+    var data = obj.data;
+    var event= obj.event;
+    if(event =='edit'){
+        layer.open({
+            type:2,
+            area:['500px','400px'],
+            btn:['确定','取消'],
+            btnAlign: 'c',
+            content:'/userinfo?userid='+data.id,
+            yes: function(index, layero){
+                var username = layer.getChildFrame('#username', index).val();
+                var userid = layer.getChildFrame('#userid', index).val();
+                var sex = layer.getChildFrame('input[type="radio"]:checked', index).val();
+                var phone = layer.getChildFrame('#phone', index).val();
+                var email = layer.getChildFrame('#email', index).val();
+                var remarks = layer.getChildFrame('#remarks', index).val();
+                var roleid = layer.getChildFrame('.layui-this', index).attr('lay-value');
+                var rolename = layer.getChildFrame('.layui-this', index).text();
+                $.ajax({
+                        type:'get',
+                        dataType:'json',
+                        url:'/edit_userinfo',
+                        data:{'username':username,'userid':userid,'sex':sex,'phone':phone,'email':email,'remarks':remarks,'roleid':roleid},
+                        success:function(data){
+                            layer.close(index);
+                            layer.msg('修改成功');
+                            obj.update({
+                                username:username,
+                                userid:userid,
+                                sex:sex,
+                                phone:phone,
+                                email:email,
+                                remarks:remarks,
+                                rolename:rolename
+                            });
+                        },
+                        error:function(e){
+                        }
+                   });
+
+            }
+            ,btn2: function(index, layero){
+                layer.close(index);
+            }
+        });
+
+    }else if(event=='parameter'){
+        layer.tab({
+            area: ['600px', '300px'],
+            tab: [{
+                title: '参数A',
+                content: data.A
+            }, {
+                title: '参数b',
+                content: data.b
+            }, {
+                title: '参数theta',
+                content: data.theta
+            }]
+});
+
+
+    }
+  });
+
+});
+
+
+
+</script>
+
+</body>
+</html>

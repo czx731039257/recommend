@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>nmsl</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/layui.css' %}">
+    <style>
+        .layui-tab-item{
+            height:100%;
+        }
+    </style>
+</head>
+<body class="layui-layout-body">
+
+{% load static %}
+<script src="{% static 'layui.js' %}" charset="utf-8"></script>
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header">
+        <div class="layui-logo">电影推荐系统</div>
+        <!-- 头部区域（可配合layui已有的水平导航） -->
+        <ul class="layui-nav layui-layout-left">
+            <li class="layui-nav-item"><a href="">控制台</a></li>
+            <li class="layui-nav-item"><a href="">用户</a></li>
+        </ul>
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item">
+                <a href="javascript:;">
+                    <img src=" {{request.session.head}}" class="layui-nav-img">
+                </a>
+                {% if '/personinfo' in request.session.permissions %}
+                <dl class="layui-nav-child">
+                    <dd><a href="#" class="site-demo-active" data-url="/personinfo" data-title="查看个人信息" data-id="3">基本资料</a></dd>
+                </dl>
+                {% endif %}
+            </li>
+            <li class="layui-nav-item"><button id="layout" class="layui-btn layui-bg-black">退出</button></li>
+        </ul>
+    </div>
+
+    <div class="layui-side layui-bg-black">
+        <div class="layui-side-scroll">
+            <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+            <ul class="layui-nav layui-nav-tree" lay-filter="test">
+                <li class="layui-nav-item layui-nav-itemed">
+                    <a class="" href="javascript:;">电影推荐</a>
+                    <dl class="layui-nav-child">
+                        {% if '/recommend' in request.session.permissions %}
+                        <dd><a href="#" class="site-demo-active" data-url="/recommend" data-title="个性化推荐" data-id="1">个性化推荐</a>
+                        </dd>
+                        {% endif %}
+
+                        {% if '/heat' in request.session.permissions %}
+                        <dd><a href="#" class="site-demo-active" data-url="/heat" data-title="热度榜"
+                               data-id="2">热度榜</a></dd>
+                        {% endif %}
+                    </dl>
+                </li>
+                <li class="layui-nav-item">
+                    <a href="javascript:;">用户管理</a>
+                    <dl class="layui-nav-child">
+                         {% if '/personinfo' in request.session.permissions %}
+                        <dd><a href="#" class="site-demo-active" data-url="/personinfo" data-title="查看个人信息" data-id="3">查看个人信息</a>
+                        </dd>
+                         {% endif %}
+                         {% if '/password' in request.session.permissions %}
+                        <dd><a href="#" class="site-demo-active" data-url="/password" data-title="修改密码" data-id="4">修改密码</a>
+                        </dd>
+                         {% endif %}
+                         {% if '/collection' in request.session.permissions %}
+                        <dd><a href="#" class="site-demo-active" data-url="/collection" data-title="收藏夹" data-id="5">收藏夹</a>
+                        </dd>
+                         {% endif %}
+                         {% if '/allrecords' in request.session.permissions %}
+                        <dd><a href="#" class="site-demo-active" data-url="/allrecords" data-title="推荐记录" data-id="6">推荐记录</a>
+                        </dd>
+                         {% endif %}
+                    </dl>
+                </li>
+                <li class="layui-nav-item">
+                    <a href="javascript:;">后台管理</a>
+                    <dl class="layui-nav-child">
+                        {% if '/allusers' in request.session.permissions %}
+                        <dd><a href="#" class="site-demo-active" data-url="/allusers" data-title="用户信息管理" data-id="7">用户信息管理</a>
+                        </dd>
+                         {% endif %}
+                        {% if '/allmovies' in request.session.permissions %}
+                        <dd><a href="#" class="site-demo-active" data-url="/allmovies" data-title="电影信息管理" data-id="8">电影信息管理</a>
+                        </dd>
+                         {% endif %}
+                        {% if '/allroles' in request.session.permissions %}
+                        <dd><a href="#" class="site-demo-active" data-url="/allroles" data-title="角色管理"
+                               data-id="9">角色管理</a></dd>
+                         {% endif %}
+                        {% if '/allpermissions' in request.session.permissions %}
+                        <dd><a href="#" class="site-demo-active" data-url="/allpermissions" data-title="权限管理"
+                               data-id="10">权限管理</a></dd>
+                         {% endif %}
+                    </dl>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div style="height:100%;">
+    <div class="layui-body" style="overflow:hidden;">
+        <div class="layui-tab" lay-filter="tabtest" lay-allowClose="true" style="height:90%;">
+            <ul class="layui-tab-title">
+                <li class="layui-this" lay-id="1">
+                    个性化推荐
+                </li>
+            </ul>
+            <div class="layui-tab-content" style="height:100%;">
+                <div class="layui-tab-item layui-show" style="height:100%;">
+                    <iframe frameborder="0" src="/recommend" scrolling="auto" height="100%" width="100%" style="height:100%;"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+</div>
+<script>
+
+
+
+layui.use(['element','jquery'],function(){
+    var $ = layui.$;
+    var element = layui.element; //Tab的切换功能，切换事件监听等，需要依赖element模块
+    var active = {
+         //在这里给active绑定几项事件，后面可通过active调用这些事件
+               tabAdd: function(url,id,name) {
+                    //新增一个Tab项 传入三个参数，分别对应其标题，tab页面的地址，还有一个规定的id，是标签中data-id的属性值
+                    //关于tabAdd的方法所传入的参数可看layui的开发文档中基础方法部分
+                    element.tabAdd('tabtest', {
+                        title: name,
+                        content: '<iframe data-frameid="'+id+'" scrolling="auto" frameborder="0" src="'+url+'" height="100%" width="100%" style="height:100%;"></iframe>',
+                        id: id //规定好的id
+                    })
+
+                },
+                tabChange: function(id) {
+                    //切换到指定Tab项
+                    element.tabChange('tabtest', id); //根据传入的id传入到指定的tab项
+                },
+                tabDelete: function (id) {
+                element.tabDelete("tabtest", id);//删除
+                }
+            };
+
+    $('.site-demo-active').on('click', function() {
+
+        var dataid = $(this);
+        //否则判断该tab项是否以及存在
+        var isData = false; //初始化一个标志，为false说明未打开该tab项 为true则说明已有
+        $.each($(".layui-tab-title li[lay-id]"), function () {
+            //如果点击左侧菜单栏所传入的id 在右侧tab项中的lay-id属性可以找到，则说明该tab项已经打开
+            if ($(this).attr("lay-id") == dataid.attr("data-id")) {
+                isData = true;
+            }
+        })
+        if (isData == false) {
+            //标志为false 新增一个tab项
+            active.tabAdd(dataid.attr("data-url"), dataid.attr("data-id"),dataid.attr("data-title"));
+
+        }
+
+        //最后不管是否新增tab，最后都转到要打开的选项页面上
+        active.tabChange(dataid.attr("data-id"));
+     });
+
+    $('#layout').on('click',function(){
+        window.location.href='/layout';
+    });
+
+
+
+});
+
+
+
+
+</script>
+
+
+</body>
+</html>

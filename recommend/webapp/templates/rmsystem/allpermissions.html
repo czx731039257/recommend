@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>权限表</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/layui.css' %}">
+
+</head>
+<body>
+{% load static %}
+<script src="{% static 'layui.js' %}" charset="utf-8"></script>
+{% csrf_token %}
+
+<script type="text/html" id="toolbarDemo">
+ <div class="layui-inline" lay-event="refresh"><i class="layui-icon layui-icon-refresh-3"></i></div>
+  权限名：
+    <div class="layui-inline">
+    <input class="layui-input" name="id" id="name_select" autocomplete="off">
+  </div>
+  url:
+    <div class="layui-inline">
+    <input class="layui-input" name="id" id="url_select" autocomplete="off">
+  </div>
+  <button class="layui-btn" id="select" lay-event="select">搜索</button>
+    {% if '/addpermission' in request.session.permissions %}
+    <button class="layui-btn" id="add" lay-event="add">添加</button>
+    {% endif %}
+</script>
+
+<table class="layui-hide" id="test" lay-filter="test"></table>
+
+<script type="text/html" id="barDemo">
+    {% if '/editpermission' in request.session.permissions %}
+    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    {% endif %}
+    {% if '/del_permission' in request.session.permissions %}
+    <a class="layui-btn layui-btn-xs" lay-event="del">删除</a>
+    {% endif %}
+</script>
+
+<script>
+  layui.use(['table','layer','jquery'], function(){
+  var table = layui.table;
+  var layer = layui.layer;
+  var $=layui.$
+
+  table.render({
+    elem: '#test'
+    ,url:'/get_allpermissions'
+    ,id: 'test'
+    ,toolbar: '#toolbarDemo'
+    ,cols: [[
+      {field:'id', width:80, title: 'ID', sort: true}
+      ,{field:'name', width:120, title: '权限名'}
+      ,{field:'url', width:120, title: 'url'}
+      ,{field:'describe', width:400, title: '权限描述'}
+      ,{fixed: 'right', title:'操作', toolbar: '#barDemo', width:150}
+    ]]
+    ,page: true
+  });
+
+  table.on('toolbar(test)',function(obj){
+    var event=obj.event;
+    if (event=="select"){
+        name_select=$('#name_select').val();
+        url_select=$('#url_select').val();
+        table.reload('test',{
+           page:{
+              curr:1
+           },
+           where:{
+                name:name_select,
+                url:url_select
+           }
+        });
+    }else if(event=="refresh"){
+        table.reload('test',{
+            page:{
+                curr:1
+            }
+         });
+    }else if(event=='add'){
+        layer.open({
+            type:2,
+            area:['460px','300px'],
+            btn:['确定'],
+            btnAlign: 'c',
+            content:'/addpermission',
+            yes: function(index, layero){
+                   var name = layer.getChildFrame('#name', index).val();
+                   var url = layer.getChildFrame('#url', index).val();
+                   var describe = layer.getChildFrame('#describe', index).val();
+                   $.ajax({
+                        type:'get',
+                        dataType:'json',
+                        url:'/add_permission',
+                        data:{'name':name,'url':url,'describe':describe},
+                        success:function(data){
+                            table.reload('test',{
+                                page:{
+                                        curr:1
+                                      },
+                            });
+                            layer.close(index);
+                             layer.msg('添加成功');
+                        },
+                        error:function(e){
+                        }
+                   });
+
+            }
+        });
+    }
+
+  });
+
+
+
+   //监听行工具事件
+  table.on('tool(test)', function(obj){
+    var data = obj.data;
+    var event= obj.event;
+    if(event =='edit'){
+        layer.open({
+            type:2,
+            area:['460px','300px'],
+            btn:['确定','取消'],
+            btnAlign: 'c',
+            content:'/editpermission?name='+data.name+'&url='+data.url+'&describe='+data.describe,
+            yes: function(index, layero){
+                var name = layer.getChildFrame('#name', index).val();
+                var url = layer.getChildFrame('#url', index).val();
+                var describe = layer.getChildFrame('#describe', index).val();
+                $.ajax({
+                        type:'get',
+                        dataType:'json',
+                        url:'/edit_permission',
+                        data:{'id':data.id,'name':name,'url':url,'describe':describe},
+                        success:function(data){
+                            obj.update({
+                                name:name,
+                                url:url,
+                                describe:describe
+                            });
+                            layer.close(index);
+                            layer.msg('修改成功');
+                        },
+                        error:function(e){
+                        }
+                   });
+
+            }
+            ,btn2: function(index, layero){
+
+            }
+        });
+
+    }else if(event == 'del'){
+      layer.confirm('确认删除权限吗?', {icon: 3, title:'提示'}, function(index){
+            layer.close(index);
+            $.ajax({
+            type:'get'
+            ,dataType:'json'
+            ,url:'/del_permission'
+            ,data:{'id':data.id}
+            ,success: function(data){
+                obj.del();
+                layer.msg('删除成功');
+            }
+            ,error: function(data){
+
+            }
+        });
+        layer.close(index);
+      });
+    }
+  });
+
+
+
+
+
+});
+
+
+
+</script>
+
+</body>
+</html>

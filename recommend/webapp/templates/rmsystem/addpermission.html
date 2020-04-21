@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>添加权限</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/layui.css' %}">
+</head>
+<body>
+{% load static %}
+<script src="{% static 'layui.js' %}" charset="utf-8"></script>
+{% csrf_token %}
+<form class="layui-form">
+    <div class="layui-form-item">
+        <div class="layui-form-label">名称</div>
+        <div class="layui-input-inline">
+            <input class="layui-input" type="text" id="name">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-form-label">url</div>
+        <div class="layui-input-inline">
+            <input class="layui-input" type="text" id="url">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-form-label">权限描述</div>
+        <div class="layui-input-inline">
+            <input class="layui-input" type="text" id="describe" value="{{describe}}">
+        </div>
+    </div>
+</form>
+<script>
+    layui.use('form',function(){
+        var form=layui.form;
+    });
+</script>
+</body>
+</html>

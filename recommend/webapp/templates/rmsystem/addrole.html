@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>添加角色</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/layui.css' %}">
+    <link rel="stylesheet" href="{% static 'formSelects-v4.css' %}">
+</head>
+<body>
+{% load static %}
+<script src="{% static 'layui.js' %}" charset="utf-8"></script>
+<script src="{% static 'formSelects-v4.js' %}" charset="utf-8"></script>
+{% csrf_token %}
+
+<form class="layui-form"  lay-filter="formDemo">
+    <div class="layui-form-item">
+        <div class="layui-form-label">名称</div>
+        <div class="layui-input-inline">
+            <input class="layui-input" type="text" id="name">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-form-item">
+            <label class="layui-form-label">权限</label>
+            <div class="layui-input-inline">
+                <select id="sysusers" name="systemUserIds" xm-select-height="36px" xm-select="select2">
+
+                </select>
+            </div>
+        </div>
+
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-form-label">角色描述</div>
+        <div class="layui-input-inline">
+            <input class="layui-input" type="text" id="describe"></input>
+        </div>
+    </div>
+
+
+
+</form>
+
+<script>
+
+layui.config({
+        base: 'D:\pythonproject\recommend\webapp\static\formSelects-v4.js' //路径为插件
+  }).extend({
+        formSelects: 'formSelects-v4'
+  });
+
+layui.use(['form','formSelects','jquery'],function(){
+        var form=layui.form;
+        var formSelects=layui.formSelects;
+        var $=layui.$;
+        formSelects.btns('select2', []);
+
+        $('#btnDemo').on('click',function(){
+            a=[]
+            $('.xm-select-this').each(function(i,dom){
+                a.push($(this).attr('lay-value'));
+            });
+            alert(a);
+
+        });
+
+        $.ajax({
+              type:'get',
+              dataType:'json',
+              url:'/get_allpermission',
+              data:{'name':'','url':''},
+              success:function(data){
+                keys=[]
+                    for(var i =0;i<data.data.length;i++){
+                        var temp={
+                            'name':data.data[i].name,
+                            'value':data.data[i].id
+                        }
+                        keys.push(temp);
+                    }
+
+               formSelects.data('select2', 'local', { //请求数据后，将数据动态渲染到下拉框中
+                                arr: keys
+               });
+         form.render(null,'formDemo');
+              },
+               error:function(e){
+               }
+        });
+
+    });
+
+
+
+</script>
+</body>
+</html>

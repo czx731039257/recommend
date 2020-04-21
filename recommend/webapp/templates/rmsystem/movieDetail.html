@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>基本资料</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/layui.css' %}">
+</head>
+<body>
+{% load static %}
+<script src="{% static 'layui.js' %}" charset="utf-8"></script>
+{% csrf_token %}
+
+
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space1">
+        <div class="layui-row">
+            <div align="center">
+                <img align="center" style="align:center" id="pic" src="">
+            </div>
+            <div>
+                    导演:&nbsp;&nbsp;{{director}}<br>
+                    编剧:&nbsp;&nbsp;{{scriptwriter}}<br>
+                    主演:&nbsp;&nbsp;{{actor}}<br>
+                    类型:&nbsp;&nbsp;{{type}}<br>
+                    上映时间:&nbsp;&nbsp;{{releasetime}}<br>
+                    片长:&nbsp;&nbsp;{{runtime}}<br>
+            </div>
+            <div>
+                电影简介: <br>
+                {% for line in summary %}
+                    &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;{{line}}<br>
+                {% endfor %}
+
+            </div>
+        </div>
+    </div>
+
+</div>
+<script>
+layui.use(['form','layer','jquery','upload','element'],function(){
+   var form=layui.form;
+   var element=layui.element;
+    var $=layui.$;
+
+    $('#pic').attr("src",'/static/picture/'+'{{movieId}}'+'.jpg');
+
+});
+
+
+
+
+
+
+
+</script>
+</body>
+</html>

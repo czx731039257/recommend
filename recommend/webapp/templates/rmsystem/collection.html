@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>收藏夹</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/layui.css' %}">
+
+</head>
+<body>
+{% load static %}
+<script src="{% static 'layui.js' %}" charset="utf-8"></script>
+{% csrf_token %}
+
+<table class="layui-hide" id="test" lay-filter="test"></table>
+
+<script type="text/html" id="barDemo">
+    {% if '/movieDetail' in request.session.permissions %}
+    <a class="layui-btn layui-btn-xs" lay-event="watch">查看</a>
+  {% endif %}
+    {% if '/del_collection' in request.session.permissions %}
+  <a class="layui-btn layui-btn-xs" lay-event="cancel">取消收藏</a>
+    {% endif %}
+</script>
+
+<script type="text/html" id="toolbarDemo">
+ <div class="layui-inline" lay-event="refresh"><i class="layui-icon layui-icon-refresh-3"></i></div>
+</script>
+
+<script>
+  layui.use(['table','layer','jquery'], function(){
+  var table = layui.table;
+  var layer = layui.layer;
+  var $=layui.$;
+
+  table.render({
+    elem: '#test'
+    ,url:'/get_collection'
+    ,id:'test'
+    ,toolbar: '#toolbarDemo'
+    ,cols: [[
+      {field:'id', width:80, title: 'ID'}
+      ,{field:'title', width:250, title: '电影名'}
+      ,{field:'genres', width:250, title: '种类'}
+      ,{field:'feature', width:400, title: '特征向量'}
+      ,{fixed: 'right', title:'操作', toolbar: '#barDemo', width:150}
+    ]]
+    ,page: true
+  });
+
+     $.ajaxSetup({
+            data:{csrfmiddlewaretoken:'{{ csrf_token }}'}
+        });
+
+    table.on('toolbar(test)', function(obj){
+        table.reload('test',{
+                    page:{
+                        curr:1
+                    }
+                });
+    });
+
+   //监听行工具事件
+  table.on('tool(test)', function(obj){
+    var data = obj.data;
+    var event = obj.event;
+
+    if(event === 'cancel'){
+         $.ajax({
+            //请求方式
+            type : "GET",
+            dataType:"json",
+            url : "/del_collection",
+            data : {'movieid':data.id,'operateType':0,'userid':{{request.session.userid}}},
+            //请求成功
+            success : function(result) {
+                obj.del();
+                layer.msg('取消收藏成功');
+            },
+            //请求失败，包含具体的错误信息
+            error : function(e){
+
+            }
+        });
+    }else if(event=='watch'){
+        layer.open({
+             type:2,
+             title:'电影介绍',
+             area: ['550px', '450px'],
+             content:'/movieDetail?movieId='+data.id,
+             yes:function(layero,index){
+             }
+        });
+    }
+  });
+
+});
+
+
+
+</script>
+
+</body>
+</html>

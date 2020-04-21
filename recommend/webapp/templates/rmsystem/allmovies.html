@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>所有的电影</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/layui.css' %}">
+
+</head>
+<body>
+{% load static %}
+<script src="{% static 'layui.js' %}" charset="utf-8"></script>
+{% csrf_token %}
+
+<!--<div class="demoTable">
+  ID：
+  <div class="layui-inline">
+    <input class="layui-input" name="id" id="selectid" autocomplete="off">
+  </div>
+  电影名：
+    <div class="layui-inline">
+    <input class="layui-input" name="id" id="selecttitle" autocomplete="off">
+  </div>
+  <button class="layui-btn" id="select">搜索</button>
+    <button class="layui-btn" id="selectall">搜索全部</button>
+</div>-->
+
+<script type="text/html" id="toolbarDemo">
+    <div class="layui-inline" lay-event="refresh"><i class="layui-icon layui-icon-refresh-3"></i></div>
+    ID：
+  <div class="layui-inline">
+    <input class="layui-input" name="id" id="selectid" autocomplete="off">
+  </div>
+  电影名：
+    <div class="layui-inline">
+    <input class="layui-input" name="id" id="selecttitle" autocomplete="off">
+  </div>
+    {% if '/allmovies' in request.session.permissions %}
+  <button class="layui-btn" lay-event="select" id="select">搜索</button>
+    <button class="layui-btn" lay-event="selectall" id="selectall">搜索全部</button>
+    {% endif %}
+</script>
+
+
+<table class="layui-hide" id="test" lay-filter="test"></table>
+
+<script type="text/html" id="barDemo">
+    {% if '/allmovies' in request.session.permissions %}
+  <a class="layui-btn layui-btn-xs" lay-event="watch">查看</a>
+    {% endif %}
+</script>
+
+
+
+<script>
+  layui.use(['table','layer','jquery'], function(){
+  var table = layui.table;
+  var layer = layui.layer;
+  var $ =layui.$;
+
+  table.render({
+    elem: '#test'
+    ,url:'/get_allmovies'
+    ,id :'test'
+    ,toolbar: '#toolbarDemo'
+    ,cols: [[
+      {field:'id', width:80, title: 'ID', sort: true}
+      ,{field:'title', width:250, title: '电影名'}
+      ,{field:'genres', width:250, title: '种类'}
+      ,{field:'number_people', width:100, title: '收藏人数'}
+      ,{field:'feature', width:400, title: '特征向量'}
+      ,{fixed: 'right', title:'操作', toolbar: '#barDemo', width:150}
+    ]]
+    ,page: true
+  });
+
+
+
+ table.on('toolbar(test)',function(obj){
+    var event=obj.event;
+    if (event=="select"){
+       selectid=$('#selectid').val();
+    selecttitle=$('#selecttitle').val();
+        table.reload('test',{
+           page:{
+              curr:1
+           },
+           where:{
+                id:selectid,
+                title:selecttitle
+           }
+        });
+    }else if(event=="selectall"){
+        table.reload('test',{
+         page:{
+              curr:1
+         },
+         where:{
+                id:'',
+                title:''
+           }
+        });
+    }else if(event=="refresh"){
+        table.reload('test',{
+            page:{
+                curr:1
+            }
+         });
+    }
+
+  });
+
+
+
+   table.on('tool(test)', function(obj){
+    var data = obj.data;
+    var event = obj.event;
+    if(event === 'watch'){
+         layer.open({
+             type:2,
+             title:'电影介绍',
+             area: ['550px', '450px'],
+             btn:['喜欢并收藏'],
+             btnAlign: 'c',
+             content:'/movieDetail?movieId='+data.id,
+             yes:function(layero,index){
+             }
+        });
+
+    }else if(event=='addcollect'){
+     if(data.collectState=='未收藏'){
+        $.ajax({
+            //请求方式
+            type : "GET",
+            dataType:"json",
+            url : "/add_collection",
+            data : {'movieid':data.id,'operateType':0},
+            //请求成功
+            success : function(result) {
+                obj.update({
+                    collectState:'已收藏',
+                    number_people:result.number_people
+                });
+                layer.msg('添加收藏成功');
+            },
+            //请求失败，包含具体的错误信息
+            error : function(e){
+
+            }
+        });
+     }else if(data.collectState=='已收藏'){
+        layer.msg('已收藏');
+     }
+    }else if(event=='delcollect'){
+      if(data.collectState=='已收藏'){
+        $.ajax({
+            //请求方式
+            type : "GET",
+            dataType:"json",
+            url : "/del_collection",
+            data : {'movieid':data.id,'operateType':0},
+            //请求成功
+            success : function(result) {
+                obj.update({
+                    collectState:'未收藏',
+                    number_people:result.number_people
+                });
+                layer.msg('取消收藏成功');
+            },
+            //请求失败，包含具体的错误信息
+            error : function(e){
+
+            }
+        });
+      }else if(data.collectState=='未收藏'){
+            layer.msg('未收藏');
+      }
+    }
+  });
+});
+
+
+
+</script>
+
+</body>
+</html>

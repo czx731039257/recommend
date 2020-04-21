@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>基本资料</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/layui.css' %}">
+</head>
+<body>
+{% load static %}
+<script src="{% static 'layui.js' %}" charset="utf-8"></script>
+{% csrf_token %}
+
+
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+
+                <div class="layui-card-body" pad15>
+                    <form class="layui-form" lay-filter="formDemo">
+
+
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">我的角色</label>
+                            <div class="layui-input-inline">
+                                <select id="role" name="role">
+
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">用户ID</label>
+                            <div class="layui-input-inline">
+                                <input type="text" id="userid" name="userid" value="闲心" lay-verify="userid"
+                                       readonly="true"
+                                       autocomplete="off" placeholder="请输入用户ID" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">用户名</label>
+                            <div class="layui-input-inline">
+                                <input type="text" id="username" name="username" value="闲心" lay-verify="username"
+                                       autocomplete="off" placeholder="请输入名" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">性别</label>
+                            <div class="layui-input-block">
+                                <input type="radio" id="man" name="sex" value="0" title="男">
+                                <input type="radio" id="woman" name="sex" value="1" title="女">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">头像</label>
+                            <div class="layui-input-inline">
+                                <div class="layui-upload-list">
+                                    <img id="head" class="layui-upload-img headImage" name="head" width="130px" height="130px"
+                                         src="" >
+                                    <p id="demoText"></p>
+                                </div>
+                            </div>
+                             {% if '/update_head' in request.session.permissions %}
+                            <div class="layui-input-inline uploadHeadImage">
+                                <div class="layui-upload-drag" id="headImg">
+                                    <i class="layui-icon"></i>
+                                    <p>点击上传图片，或将图片拖拽到此处</p>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                        </div>
+
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">手机</label>
+                            <div class="layui-input-inline">
+                                <input type="text" id="phone" name="phone" value lay-verify="phone" autocomplete="off"
+                                       class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">邮箱</label>
+                            <div class="layui-input-inline">
+                                <input type="text" id="email" name="email" value lay-verify="email" autocomplete="off"
+                                       class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-form-text">
+                            <label class="layui-form-label">备注</label>
+                            <div class="layui-input-block">
+                                <textarea name="remarks" id="remarks" placeholder="请输入内容"
+                                          class="layui-textarea"></textarea>
+                            </div>
+                        </div>
+                        {% if '/edit_personinfo' in request.session.permissions %}
+                        <div class="layui-form-item">
+                            <div class="layui-input-block">
+                                <button class="layui-btn" lay-submit lay-filter="submitDemo">确认修改</button>
+                                <button type="reset" class="layui-btn layui-btn-primary">重新填写</button>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    layui.use(['form','layer','jquery','upload','element'],function(){
+        var form=layui.form;
+        var layer=layui.layer;
+        var upload=layui.upload;
+        var element=layui.element;
+        var $ = layui.$;
+
+        $.ajax({
+            type:'get',
+            dataType:'json',
+            url:'/get_personinfo',
+            success:function(data){
+                 form.val("formDemo",{
+                  username:data.username
+                  ,userid:data.userid
+                  ,phone:data.phone
+                  ,email:data.email
+                  ,remarks:data.remarks
+                  ,head:data.head
+                  ,sex:data.sex
+                });
+
+
+                $('#head').attr('src',data.head);
+            },
+            error:function(e){
+            }
+        });
+
+
+        $.ajax({
+                    type:'get',
+                    dataType:'json',
+                    url:'/get_userhasrole',
+                    data:{'userid':'{{request.session.userid}}'},
+                    success:function(data){
+                        str='';
+                        for(var i=0;i<data.data.length;i++){
+                            if(data.data[i].id==data.hasroleid){
+                                str+='<option value="'+data.data[i].id+'" selected>'+data.data[i].name+'</option>';
+                            }else{
+                                str+='<option value="'+data.data[i].id+'" disabled>'+data.data[i].name+'</option>';
+                            }
+                        }
+
+                        $('#role').html(str);
+                    },
+                    error:function(e){
+                    }
+                });
+
+
+
+        form.on('submit(submitDemo)',function(data){
+            $.ajax({
+            type:'get',
+            dataType:'json',
+            url:'/edit_personinfo',
+            data:data.field,
+            success:function(data){
+
+            },
+            error:function(e){
+            }
+            });
+             layer.msg('修改成功');
+                return false;
+        });
+
+         var uploadInst = upload.render({
+            elem: '#headImg'
+            , url: '/update_head'
+            , size: 1024*10
+            , data:{'userid':'{{request.session.userid}}'}
+            , before: function (obj) {
+                //预读本地文件示例，不支持ie8
+                obj.preview(function (index, file, result) {
+                   //$('#head').attr('src', result); //图片链接（base64）
+                });
+            }
+            , done: function (res) {
+                //如果上传失败
+                if (res.code > 0) {
+                    return layer.msg('上传失败');
+                }
+
+                //上传成功
+                layer.msg('上传成功');
+                $('#head').attr('src',res.data.src);
+            }
+            , error: function () {
+
+            }
+        });
+        element.init();
+
+
+    });
+
+
+
+</script>
+</body>
+</html>
